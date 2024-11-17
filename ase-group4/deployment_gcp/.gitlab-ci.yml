@@ -1,0 +1,32 @@
+#workflow
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+
+image: docker:19.03.12-dind
+
+# Stages
+stages:
+  - deploy
+
+deploy-gcp:
+  stage: deploy
+  script:
+    - echo "Start deploy job"
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - mkdir ~/.ssh && touch ~/.ssh/config
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - eval $(ssh-agent -s)
+    #- echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    #- echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cat $GCP_PEM_KEY | tr -d '\r' | ssh-add -
+
+    - echo "GCP Host " $GCP_USER_HOST
+    - scp -r $DOCKER_COMPOSE_FILE $GCP_USER_HOST:~/
+    - ssh $GCP_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
+    - ssh $GCP_USER_HOST "docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up --force-recreate -d"
+    - echo "Deployed on GCP"
+  variables:
+    DOCKER_COMPOSE_FILE: deployment_gcp/docker-compose.prod.yml

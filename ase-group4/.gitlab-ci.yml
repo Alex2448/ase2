@@ -1,0 +1,301 @@
+image: maven:3.8-jdk-11
+
+cache:
+  paths:
+    - .m2/repository
+
+before_script:
+  - cd $CI_PROJECT_DIR
+
+after_script:
+  - cd $CI_PROJECT_DIR
+
+
+stages:
+  - build
+  - test
+  - package
+  - publish
+  - deploy
+
+# Build jobs
+## Frontend
+frontend:build:
+  stage: build
+  image: node:16.13.2
+  script:
+    - echo "Start build frontend"
+    - cd frontend
+    - npm install
+    - npm run build
+    - echo "Build successfully!"
+  artifacts:
+    expire_in: 2 hour
+    paths:
+      - build
+      - node_modules/
+  only:
+    changes:
+      - frontend/**/*
+
+## Backend
+backend:api-gateway:build:
+  stage: build
+  script:
+    - echo "Start build stage"
+    - cd backend/api-gateway
+    - mvn clean compile
+  only:
+    changes:
+      - backend/api-gateway/**/*
+
+backend:cas-service:build:
+  stage: build
+  script:
+    - echo "Start build stage"
+    - cd backend/cas-service
+    - mvn clean compile
+  only:
+    changes:
+      - backend/cas-service/**/*
+
+backend:delivery-service:build:
+  stage: build
+  script:
+    - echo "Start build stage"
+    - cd backend/delivery-service
+    - mvn clean compile
+  only:
+    changes:
+      - backend/delivery-service/**/*
+
+backend:discovery-service:build:
+  stage: build
+  script:
+    - echo "Start build stage"
+    - cd backend/discovery-service
+    - mvn clean compile
+  only:
+    changes:
+      - backend/discovery-service/**/*
+
+# Test jobs
+## Frontend
+frontend:test:
+  stage: test
+  script:
+    - echo "Start test frontend"
+    - cd frontend
+  only:
+    changes:
+      - frontend/**/*
+
+## Backend
+backend:api-gateway:test:
+  stage: test
+  script:
+    - echo "Start test stage"
+  only:
+    changes:
+      - backend/api-gateway/**/*
+
+backend:cas-service:test:
+  stage: test
+  script:
+    - echo "Start test stage"
+  only:
+    changes:
+      - backend/cas-service/**/*
+
+backend:delivery-service:test:
+  stage: test
+  script:
+    - echo "Start test stage"
+  only:
+    changes:
+      - backend/delivery-service/**/*
+
+backend:discovery-service:test:
+  stage: test
+  script:
+    - echo "Start test stage"
+  only:
+    changes:
+      - backend/discovery-service/**/*
+
+# Package jobs
+## Frontend
+frontend:package:
+  stage: package
+  script:
+    - echo "Start package frontend"
+  only:
+    changes:
+      - frontend/**/*
+
+## Backend
+backend:api-gateway:package:
+  stage: package
+  script:
+    - echo "Start package stage"
+    - cd backend/api-gateway
+    - mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - backend/api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar
+  only:
+    changes:
+      - backend/api-gateway/**/*
+
+backend:cas-service:package:
+  stage: package
+  script:
+    - echo "Start package stage"
+    - cd backend/cas-service
+    - mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - backend/cas-service/target/cas-service-0.0.1-SNAPSHOT.jar
+  only:
+    changes:
+      - backend/cas-service/**/*
+
+backend:delivery-service:package:
+  stage: package
+  script:
+    - echo "Start package stage"
+    - cd backend/delivery-service
+    - mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - backend/delivery-service/target/delivery-service-0.0.1-SNAPSHOT.jar
+  only:
+    changes:
+      - backend/delivery-service/**/*
+
+backend:discovery-service:package:
+  stage: package
+  script:
+    - echo "Start package stage"
+    - cd backend/discovery-service
+    - mvn package -DskipTests=true
+  artifacts:
+    paths:
+      - backend/discovery-service/target/discovery-service-0.0.1-SNAPSHOT.jar
+  only:
+    changes:
+      - backend/discovery-service/**/*
+
+
+# Publish jobs
+## Frontend
+frontend:publish:
+  stage: publish
+  image: docker:19.03.12
+  script:
+    - echo "Start publish frontend"
+    - cd frontend
+    - docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $FRONTEND_IMAGE_NAME:latest .
+    - docker image tag $FRONTEND_IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION/$FRONTEND_IMAGE_NAME:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION/$FRONTEND_IMAGE_NAME:latest
+    - echo "Pushed it" $CI_REGISTRY/$CI_PROJECT_LOCATION/$FRONTEND_IMAGE_NAME:latest
+  variables:
+    FRONTEND_IMAGE_NAME: frontend
+  only:
+    changes:
+      - frontend/**/*
+
+## Backend
+backend:api-gateway:publish:
+  stage: publish
+  image: docker:19.03.12
+  script:
+    - echo "Start publish stage"
+    - cd backend/api-gateway
+    - docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - echo "pushed docker image" $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+  variables:
+    IMAGE_NAME: backend-api-gateway
+  only:
+    changes:
+      - backend/api-gateway/**/*
+
+backend:cas-service:publish:
+  stage: publish
+  image: docker:19.03.12
+  script:
+    - echo "Start publish stage"
+    - cd backend/cas-service
+    - docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - echo "pushed docker image" $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+  variables:
+    IMAGE_NAME: backend-cas-service
+  only:
+    changes:
+      - backend/cas-service/**/*
+
+backend:delivery-service:publish:
+  stage: publish
+  image: docker:19.03.12
+  script:
+    - echo "Start publish stage"
+    - cd backend/delivery-service
+    - docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - echo "pushed docker image" $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+  variables:
+    IMAGE_NAME: backend-delivery-service
+  only:
+    changes:
+      - backend/delivery-service/**/*
+
+backend:discovery-service:publish:
+  stage: publish
+  image: docker:19.03.12
+  script:
+    - echo "Start publish stage"
+    - cd backend/discovery-service
+    - docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_NAME:latest .
+    - docker image tag $IMAGE_NAME $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+    - echo "pushed docker image" $CI_REGISTRY/$CI_PROJECT_LOCATION/$IMAGE_NAME:latest
+  variables:
+    IMAGE_NAME: backend-discovery-service
+  only:
+    changes:
+      - backend/discovery-service/**/*
+
+# Deploy to GCP job
+deploy:gcp:
+  stage: deploy
+  script:
+    - echo "Start deploy job"
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - mkdir ~/.ssh && touch ~/.ssh/config
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+    - eval $(ssh-agent -s)
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cat $GCP_PEM_KEY | tr -d '\r' | ssh-add -
+
+    - echo "GCP Host " $GCP_USER_HOST
+    - scp -r $DOCKER_COMPOSE_FILE $GCP_USER_HOST:~/
+    - ssh $GCP_USER_HOST "docker login -u $CI_USERNAME -p $CI_PASSWORD $CI_REGISTRY"
+    - ssh $GCP_USER_HOST "docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up --force-recreate -d"
+    - echo "Deployed on GCP"
+  variables:
+    DOCKER_COMPOSE_FILE: deployment_gcp/docker-compose.prod.yml
+  only:
+    changes:
+      - frontend/**/*
+      - backend/**/*

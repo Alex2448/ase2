@@ -1,0 +1,70 @@
+version: '3'
+services:
+  discovery-service:
+    build: ./backend/discovery-service
+    image: discovery-service:latest
+    restart: on-failure
+    ports:
+      - 8761:8761
+
+  api-gateway:
+    build:
+      dockerfile: Dockerfile
+      context: ./backend/api-gateway
+    image: api-gateway:latest
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    restart: on-failure
+    depends_on:
+      - discovery-service
+    ports:
+      - 8080:8080
+
+  cas-service:
+    build:
+      dockerfile: Dockerfile
+      context: ./backend/cas-service
+    image: cas-service:latest
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    restart: on-failure
+    depends_on:
+      - discovery-service
+      - db
+    ports:
+      - 8081
+      - 8083-8085:8081
+
+  delivery-service:
+    build:
+      dockerfile: Dockerfile
+      context: ./backend/delivery-service
+    image: delivery-service:latest
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    restart: on-failure
+    depends_on:
+      - discovery-service
+    ports:
+       - 8082:8082
+
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./frontend
+    restart: on-failure
+    depends_on:
+      - discovery-service
+    ports:
+      - 3000:3000
+    environment:
+      - BACKEND_URL=http://localhost:8080
+
+  db:
+    image: mongo:latest
+    ports:
+          - 27017:27017
+    environment:
+      MONGO_INITDB_DATABASE: ase-cas
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: cC!5QB!SNARooomM

@@ -1,0 +1,66 @@
+version: '3'
+services:
+  discovery-service:
+    image: gitlab.lrz.de:5005/ase-21-22/team-4/ase-group4/backend-discovery-service:latest
+    container_name: discovery-service
+    restart: on-failure
+    ports:
+      - 8761:8761
+
+  api-gateway:
+    image: gitlab.lrz.de:5005/ase-21-22/team-4/ase-group4/backend-api-gateway:latest
+    container_name: api-gateway
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    restart: on-failure
+    depends_on:
+      - discovery-service
+    ports:
+      - 8080:8080
+
+  cas-service:
+    image: gitlab.lrz.de:5005/ase-21-22/team-4/ase-group4/backend-cas-service:latest
+    container_name: cas-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    restart: on-failure
+    depends_on:
+      - discovery-service
+      - db
+    ports:
+      - 8081:8081
+
+  delivery-service:
+    image: gitlab.lrz.de:5005/ase-21-22/team-4/ase-group4/backend-delivery-service:latest
+    container_name: delivery-service
+    environment:
+      - eureka.client.service-url.defaultZone=http://discovery-service:8761/eureka
+    restart: on-failure
+    depends_on:
+      - discovery-service
+    ports:
+      - 8082:8082
+
+  frontend:
+    image: gitlab.lrz.de:5005/ase-21-22/team-4/ase-group4/frontend:latest
+    container_name: frontend
+    restart: on-failure
+    depends_on:
+      - discovery-service
+    ports:
+      - 3000:3000
+    links:
+      - "api-gateway"
+
+  db:
+    container_name: mongo
+    image: mongo:latest
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_DATABASE: ase-cas
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: cC!5QB!SNARooomM
+
+

@@ -1,0 +1,44 @@
+{
+    "id": "61d4f8fce3c5750535af7629",
+    "customer": {
+        "id": "61d36959503b7916e132d216",
+        "username": "customerRFID",
+        "email": "customerRFID@mail.com",
+        "role": {
+            "id": "61c874018ac1c8d791507d67",
+            "name": "ROLE_CUSTOMER"
+        },
+        "rfidToken": "987654321987",
+        "enabled": true,
+        "createdAt": "2022-01-03T21:23:37.680Z",
+        "updatedAt": "2022-01-03T22:55:45.059Z"
+    },
+    "deliverer": {
+        "id": "61d3696c503b7916e132d217",
+        "username": "delivererRFID",
+        "email": "delivererRFID@mail.com",
+        "role": {
+            "id": "61c873f78ac1c8d791507d66",
+            "name": "ROLE_DELIVERER"
+        },
+        "rfidToken": "123456789456",
+        "enabled": true,
+        "createdAt": "2022-01-03T21:23:56Z",
+        "updatedAt": "2022-01-03T22:55:21.703Z"
+    },
+    "targetBox": {
+        "id": "61d48e968dda4611d2ec2b72",
+        "name": "BoxRF",
+        "street": "Street",
+        "postcode": "12345",
+        "state": "Bavaria",
+        "city": "Munich",
+        "country": "Germany",
+        "createdAt": "2022-01-04T18:14:46.357Z",
+        "updatedAt": "2022-01-04T18:14:46.357Z"
+    },
+    "status": "DELIVERED",
+    "trackingCode": "52e33d3e-4047-442a-99c0-4d682de414ab",
+    "createdAt": "2022-01-05T01:48:44.565Z",
+    "updatedAt": "2022-01-05T02:03:31.983398Z"
+}
