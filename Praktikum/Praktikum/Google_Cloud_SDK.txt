@@ -1,0 +1,12 @@
+1.Download google cloud sdk
+    curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-390.0.0-linux-x86_64.tar.gz
+    tar -xvzf google-cloud-cli-390.0.0-linux-x86_64.tar.gz
+    ./google-cloud-sdk/install.sh
+    source ~/.bashrc 
+2. Login
+    gcloud auth login 
+3. #Create new Project via console and set your config to that project
+    gcloud config set project <project>
+4. #If you want to login from your terminal 
+    Enable OS login in Compute Engine before creating a new VM instance (https://cloud.google.com/compute/docs/oslogin/set-up-oslogin)
+    gcloud compute ssh <instance-name> --zone=<gcp-zone>

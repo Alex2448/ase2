@@ -1,0 +1,13 @@
+{
+    "id": "15464",
+    "name": "Box789",
+    "customer": null,
+    "street": "Street123",
+    "postcode": "123",
+    "state": "Bayern",
+    "city": "Munich",
+    "country": "Deutschland",
+    "inUse": false,
+    "createdAt": null,
+    "updatedAt": "2022-01-01T19:52:35.619501200Z"
+}
